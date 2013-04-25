@@ -25,3 +25,6 @@
 # -exec executes the command for each file found 
 # (check the find(1) documentation). Piping to xargs lets you aggregate those 
 # filenames and only run du once.
+
+# filter out something finishing by swp, and not in es or en folders.
+# find -mtime 0 -not \( -name '*.swp' -o -path './es*' -o -path './en*' \)
