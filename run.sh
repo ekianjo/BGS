@@ -11,3 +11,5 @@
 #also -type is not mandatory
 
 #use : man find for more options
+
+#tar cvzf directory.tar.gz directory
