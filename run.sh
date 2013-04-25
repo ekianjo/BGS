@@ -19,3 +19,9 @@
 
 # zip: (r)ecursive [filename.zip] [contents]...
 #zip -r /var/file/bkup.zip /home/code/bots /var/config /var/system
+
+# to find directories called back and check their total size.
+# find . -name bak -type d | xargs du -ch
+# -exec executes the command for each file found 
+# (check the find(1) documentation). Piping to xargs lets you aggregate those 
+# filenames and only run du once.
