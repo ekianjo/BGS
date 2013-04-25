@@ -13,3 +13,9 @@
 #use : man find for more options
 
 #tar cvzf directory.tar.gz directory
+
+# tar: (c)reate g(z)ip (v)erbose (f)ile [filename.tar.gz] [contents]...
+#tar -czvf /var/file/bkup.tar.gz /home/code/bots /var/config /var/system
+
+# zip: (r)ecursive [filename.zip] [contents]...
+#zip -r /var/file/bkup.zip /home/code/bots /var/config /var/system
