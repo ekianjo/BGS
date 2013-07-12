@@ -11,10 +11,18 @@ import os
 
 
 
+
+
 pandorafolder=os.path.isdir("media/xxx/pandora")
 if pandorafolder==True:
   pass
-  #check for save game definitions / follow templates
+  #check in target directories : menu, apps
+
+  #check for PNDs for target applications. 
+  #stores list of PNDs supported found
+  #check for save game definitions / follow templates for PNDs supported, go through the list
+  #return a list with media as fist entry, folder as second entry, list of files detected as third entry
+  
   
 
 
