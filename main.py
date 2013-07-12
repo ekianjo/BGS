@@ -1,5 +1,25 @@
 #need to define templates for save files (top)
 #list dirs in media
+
+import os
+
+#get media list in /media
+#record their variables
+#check if they are still here at launch of the application
+
+#check for Pandora folder
+
+
+
+pandorafolder=os.path.isdir("media/xxx/pandora")
+if pandorafolder==True:
+  pass
+  #check for save game definitions / follow templates
+  
+
+
+
+
 #test for directories such as Pandora -> to accelerate the loops
 #os.path.isdir -> then store in config.
 #allow to refresh directories lookup in one click.
