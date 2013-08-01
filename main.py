@@ -3,19 +3,19 @@
 
 import os
 
-#get media list in /media
-#record their variables
+#get media list in /media and record them in variable
+topdirlist=os.listdir("/media")
+
 #check if they are still here at launch of the application
 
+progtodetect=["Gambatte.pnd","pcsx.pnd"]
+
 #check for Pandora folder
+for directory in topdirlist:
+  if os.path.isdir("media/directory/pandora"):
+      pass
 
 
-
-
-
-pandorafolder=os.path.isdir("media/xxx/pandora")
-if pandorafolder==True:
-  pass
   #check in target directories : menu, apps
 
   #check for PNDs for target applications. 
