@@ -8,11 +8,13 @@ topdirlist=os.listdir("/media")
 
 #check if they are still here at launch of the application
 
+#template should contain following info: name of pnd, name of appdata folder, file extension of save file
+
 progtodetect=["Gambatte.pnd","pcsx.pnd"]
 
 #check for Pandora folder
 for directory in topdirlist:
-  if os.path.isdir("media/directory/pandora"):
+  if os.path.isdir("media/{0}/pandora".format(directory)):
       pass
 
 
