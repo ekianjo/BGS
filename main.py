@@ -1,12 +1,17 @@
 #need to define templates for save files (top)
 #list dirs in media
 
-import os
+import os, argparse
+
+parser = argparse.ArgumentParser(description='This Program Backups Game Saves for Major Emulators on the Open Pandora Handheld')
+# -g / start GUI
+# -h / help
+# -b / which card to backup (sd card 1 or 2 or all)
+
+
 
 #get media list in /media and record them in variable
-
 #check if they are still here at launch of the application
-
 #template should contain following info: name of pnd, name of appdata folder, folder with save files, file extension of save file
 
 progtodetect=[("Gambatte.pnd","gambatte-qt",'folder=sav','folder=savestate')]
