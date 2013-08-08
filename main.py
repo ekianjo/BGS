@@ -43,6 +43,12 @@ def confirmfolderorfile(element):
   else:
     return False  
 
+def checkfolderexists(path,foldername):
+  if os.path.isdir(path+foldername):
+    return True
+  else:
+    return False
+
 def bgs():
 #check for Pandora folder
   topdirlist=os.listdir("/media")
@@ -59,8 +65,12 @@ def bgs():
             
             for i=2 to len(progs):
               if confirmfolderorfile(progs[i])==True:
-                #confirm folder is not empty
-                #if not empty save it in list of what to save later
+                folderstring=progs[i]
+                path="/media/{0}/pandora/appdata/{1}/".format(directory,progs[1])
+                if checkfolderexists(path, folderstring[7:])==True:
+                  #if not empty save it in list of what to save later
+                else: 
+                  pass
               else:
                 #find the files with the extension
                 #save their full path location for later saving
