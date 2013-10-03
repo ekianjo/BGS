@@ -14,22 +14,62 @@ parser = argparse.ArgumentParser(description='This Program Backups Game Saves fo
 #check if they are still here at launch of the application
 #template should contain following info: name of pnd, name of appdata folder, folder with save files, file extension of save file
 
-progtodetect=[("Gambatte.pnd","gambatte-qt",'folder=sav','folder=savestate')]
+listoftemplates=[("Gambatte.pnd","gambatte-qt",['sav','savestate'],[],[])
 appsfolder=['menu','desktop','apps']
 
-def checkprogram(progname,directory):
+directories=""
+debug=True
+
+def backupspecific(progname,appdatafolder,listfolders,listfiles):
   
+  global directories
+  
+  for topdirectory in directories:
+    if checkprogram(progname,topdirectory)!="":
+      workingfolder=checkprogram(progname)
+      print workingfolder
+      #confirm the top level working folder under /media/xx/pandora/
+  
+      if checkappdata(appdatafolder,topdirectory)==False:
+        print "the program " + progname +".pnd does not have a appdata folder so far." 
+      else:
+        
+        directoriesinappfolder=os.listdir("/media/{0}/pandora/appdata/{1}").format(topdirectory,appdatafolder)
+        
+        for onefolder in directoriesinappfolder:
+          for foldertobackup in listfolders:
+            if onefolder==foldertobackup:
+              print "I found the folder called "+ onefolder+" to backup"
+              #add the path worklist to backup where we will give the final instructions to zip in the end
+              
+  
+        #instruction to backup goes here
+  
+  pass
+  
+  
+  
+
+#each program has
+#PND attached to it (single) - single variable
+#appdata attached to it (single) - single variable
+#folders to save (single or several) - list
+#files to save (single or several) - list
+
+
+def checkprogram(progname,directory):
+  #returns folder if the PND is found in one of the appsfolder directory or "" if not found
   global appsfolder
   found=0
   
   for folder in appsfolder:
     if os.path.isfile("/media/{0}/pandora/{1}/{2}".format(directory,folder,progname))==True :
-      print "Found "+ progname
+      print "Found "+ progname+ " in "+ folder
       found+=1
   if found==0:
-    return False
+    return ""
   else:
-    return True
+    return folder
 
 def checkappdata(appdatafolder,directory):
   if os.path.isdir("/media/{0}/pandora/appdata/{1]".format(directory,appdatafolder))==True:
@@ -37,23 +77,35 @@ def checkappdata(appdatafolder,directory):
   else:
     return False
 
-def confirmfolderorfile(element):
-  if "folder=" in element:
-    return True
-  else:
-    return False  
-
 def checkfolderexists(path,foldername):
   if os.path.isdir(path+foldername):
     return True
   else:
     return False
 
+def defineglobaldirectories():
+  #define the top levels directories in /media
+  global directories, debug
+  directories=os.listdir("/media")
+  if debug==True: 
+    print directories
+
+  
 def bgs():
 #check for Pandora folder
-  topdirlist=os.listdir("/media")
-  for directory in topdirlist:
+  
+  defineglobaldirectories()
+  #get the name of global directories
+  
+  for programtobackup in listoftemplates:
+    pass
+    
+  
+  for directory in directories:
     print "Checking the SD Card "+directory
+    
+    
+    
     if os.path.isdir("/media/{0}/pandora".format(directory)):
       print "Checking for pandora folder on "+directory
       for progs in progtodetect:
@@ -63,15 +115,15 @@ def bgs():
           if checkappdata(progs[1])==True:
             print "Found the appdata folder "+progs[1]
             
-            for i=2 to len(progs):
-              if confirmfolderorfile(progs[i])==True:
-                folderstring=progs[i]
-                path="/media/{0}/pandora/appdata/{1}/".format(directory,progs[1])
-                if checkfolderexists(path, folderstring[7:])==True:
+#            for i=2 to len(progs):
+#              if confirmfolderorfile(progs[i])==True:
+#                folderstring=progs[i]
+#                path="/media/{0}/pandora/appdata/{1}/".format(directory,progs[1])
+#                if checkfolderexists(path, folderstring[7:])==True:
                   #if not empty save it in list of what to save later
-                else: 
-                  pass
-              else:
+#                else: 
+#                  pass
+#              else:
                 #find the files with the extension
                 #save their full path location for later saving
           
