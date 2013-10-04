@@ -16,7 +16,7 @@ today=date.today()
 #check if they are still here at launch of the application
 #template should contain following info: name of pnd, name of appdata folder, folder with save files, file extension of save file
 
-listoftemplates=[("Gambatte.pnd","gambatte-qt",['sav','savestate'],[],[])
+listoftemplates=[("Gambatte.pnd","gambatte-qt",['sav','savestate'],[],[])]
 appsfolder=['menu','desktop','apps']
 directorytobackup=[]
 
@@ -123,26 +123,16 @@ def defineglobaldirectories():
 def bgs():
 #check for Pandora folder
   
+  global listoftemplates
+  
   defineglobaldirectories()
   #get the name of global directories
   
   for programtobackup in listoftemplates:
-    pass
+    backupspecific(programtobackup[0],programtobackup[1],programtobackup[2],programtobackup[3])
     
   
-  for directory in directories:
-    print "Checking the SD Card "+directory
-    
-    
-    
-    if os.path.isdir("/media/{0}/pandora".format(directory)):
-      print "Checking for pandora folder on "+directory
-      for progs in progtodetect:
-        print "Checking for "+progs[0]
-        if checkprogram(progs[0])==True:
-          print "Checking for appfolder for "+progs[0]
-          if checkappdata(progs[1])==True:
-            print "Found the appdata folder "+progs[1]
+
             
 #            for i=2 to len(progs):
 #              if confirmfolderorfile(progs[i])==True:
@@ -165,7 +155,7 @@ def bgs():
   
   
 
-
+bgs()
 
 
 #test for directories such as Pandora -> to accelerate the loops
