@@ -1,54 +1,83 @@
 #need to define templates for save files (top)
 #list dirs in media
 
-import os, argparse
+import os, argparse,tarfile, time
+from datetime import date
 
+#will do argparse later
 parser = argparse.ArgumentParser(description='This Program Backups Game Saves for Major Emulators on the Open Pandora Handheld')
 # -g / start GUI
 # -h / help
 # -b / which card to backup (sd card 1 or 2 or all)
 
 
-
+today=date.today()
 #get media list in /media and record them in variable
 #check if they are still here at launch of the application
 #template should contain following info: name of pnd, name of appdata folder, folder with save files, file extension of save file
 
 listoftemplates=[("Gambatte.pnd","gambatte-qt",['sav','savestate'],[],[])
 appsfolder=['menu','desktop','apps']
+directorytobackup=[]
 
 directories=""
 debug=True
 
+#function that will do the backup itself
 def backupspecific(progname,appdatafolder,listfolders,listfiles):
   
-  global directories
+  global directories, directorytobackup
   
   for topdirectory in directories:
     if checkprogram(progname,topdirectory)!="":
       workingfolder=checkprogram(progname)
       print workingfolder
-      #confirm the top level working folder under /media/xx/pandora/
+      #confirm the top level working folder under /media/xx/pandora/PAF  - it is not used after expect for path
   
       if checkappdata(appdatafolder,topdirectory)==False:
         print "the program " + progname +".pnd does not have a appdata folder so far." 
       else:
         
-        directoriesinappfolder=os.listdir("/media/{0}/pandora/appdata/{1}").format(topdirectory,appdatafolder)
+        directoriesinappfolder=os.listdir(("/media/{0}/pandora/appdata/{1}").format(topdirectory,appdatafolder))
         
         for onefolder in directoriesinappfolder:
           for foldertobackup in listfolders:
             if onefolder==foldertobackup:
               print "I found the folder called "+ onefolder+" to backup"
+              
+              directorytobackup.append(("/media/{0}/pandora/appdata/{1}/{2}").format(topdirectory,appdatafolder,onefolder))
               #add the path worklist to backup where we will give the final instructions to zip in the end
               
   
         #instruction to backup goes here
   
+  makearchivefile()
+  
   pass
   
+def makearchivefile():
   
+  global directorytobackup, directories, today, shutil
   
+  pathtoarchive=""
+
+  for topdirectory in directories:
+  
+    if pathtoarchive=="":
+      archivename="BGSfile{0}-{1}-{2}.tar.gz".format(today.year,today.month,today.day)
+      if os.path.isfile("/media/{0}/{1}".format(topdirectory,archivename))==True :
+        print "Careful, an archive with the same name already exists.
+      pathtoarchive="/media/{0}/{1}".format(topdirectory,archivename)
+      tar = tarfile.open(pathtoarchive, "w:gz")
+      for folder in directorytobackup:
+        tar.add(folder)
+      tar.close()
+    
+    else: 
+      
+      shutil.copy2(pathtoarchive, '/media/{0}'.format(topdirectory)))
+      print "Copy completed on the volume "+topdirectory
+
 
 #each program has
 #PND attached to it (single) - single variable
