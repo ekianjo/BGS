@@ -85,7 +85,8 @@ def backupspecific(progname,appdatafolder,listfolders,listfiles):
 				result=[]
 				result=glob.glob("/media/{0}/pandora/appdata/{1}/{2}").format(topdirectory,appdatafolder,filetobackup)
 				if result!=[]:
-					directorytobackup.append(("/media/{0}/pandora/appdata/{1}/{2}").format(topdirectory,appdatafolder,filetobackup))
+					for resultat in result:
+						directorytobackup.append(resultat)
 			
 			
 #builds the archive files
