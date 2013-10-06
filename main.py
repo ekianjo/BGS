@@ -1,6 +1,3 @@
-#need to define templates for save files (top)
-#list dirs in media
-
 import os, tarfile, time, shutil
 import argparse, PyZenity, glob
 from datetime import date
@@ -43,7 +40,7 @@ listoftemplates=[
 ,('8Blitter.pnd','8blitter.lordus',['data'],[],[])
 ,('pushover.pnd','pushover',['.pushover'],[],[])
 ,('projectx_ptitseb.pnd','projectx',['savegame'],[],[])
-#,('','',['',''],[],[])
+,('nubnub.pnd','nubnub',[],['uploadedscore','settings','hiscore'],[])
 #,('','',['',''],[],[])
 #,('','',['',''],[],[])
 ]
@@ -84,6 +81,12 @@ def backupspecific(progname,appdatafolder,listfolders,listfiles):
 				  #add the path worklist to backup where we will give the final instructions to zip in the end
   
 			#need to build functions for files as well
+			for filetobackup in listfiles:
+				result=[]
+				result=glob.glob("/media/{0}/pandora/appdata/{1}/{2}").format(topdirectory,appdatafolder,filetobackup)
+				if result!=[]:
+					directorytobackup.append(("/media/{0}/pandora/appdata/{1}/{2}").format(topdirectory,appdatafolder,filetobackup))
+			
 			
 #builds the archive files
 def makearchivefile():
