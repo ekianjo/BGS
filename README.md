@@ -3,8 +3,8 @@ BGS
 
 Backup Game Saves is a Python tool to enable automatic backup of saved games and save states from emulators working on the Open Pandora (Linux handheld). It also duplicates the backup file on all SD-cards/connected storages units in /media available on the Pandora at the time of execution. 
 
-Supported Platform
-------------------
+Supported Platforms
+-------------------
 
 Currently all devices running libPND in a Linux environment, I guess :) Which basically reduces the use of this code to the Open Pandora Linux handheld, as far as I know. 
 
@@ -47,3 +47,11 @@ License
 -------
 
 Licensed under GPL v3
+
+To Do
+-----
+
+- A Restore Tool.
+- Size estimation before backup
+- Checking free space before backup both on SD1 and SD2
+- Running as a background task, in order to run every couple of days or so? 
