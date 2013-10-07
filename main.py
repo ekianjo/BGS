@@ -105,6 +105,7 @@ def makearchivefile():
   
   global directorytobackup, directories, today, shutil
   
+  sizeofarchive=0
   pathtoarchive=""
   print directories
 
@@ -128,9 +129,13 @@ def makearchivefile():
 		if len(directories)>1:
 			
 			print pathtoarchive
-			shutil.copyfile(pathtoarchive,'/media/{0}/{1}'.format(topdirectory,archivename))
-			print "Copy completed on the volume "+topdirectory
-			a=PyZenity.InfoMessage('For redundancy purpose, {0} has also been copied to /media/{1}/'.format(archivename,topdirectory),timeout=3)
+			if returnfreespaceondrive('media/{0}'.format(topdirectory))>sizeofarchive:
+				
+				shutil.copyfile(pathtoarchive,'/media/{0}/{1}'.format(topdirectory,archivename))
+				print "Copy completed on the volume "+topdirectory
+				a=PyZenity.InfoMessage('For redundancy purpose, {0} has also been copied to /media/{1}/'.format(archivename,topdirectory),timeout=3)
+			else:
+				a=PyZenity.InfoMessage('It appears that you lack free space on /media/{0}/ to copy the archive of {1} Mb. The duplication step will be skipped.'.format(topdirectory,sizeofarchive),timeout=3)
 
 		else:
 			a=PyZenity.InfoMessage('It appears you have only one SD Card inserted at the moment, and therefore the BGS file cannot be duplicated. Be aware you are exposed to a greater risk of data loss unless you duplicate this file somewhere else.',timeout=10)
@@ -215,6 +220,13 @@ def displayprogstobackup():
 	  
   a=PyZenity.InfoMessage('Found the following to backup: {0}'.format(programsfoundstring),timeout=10)
   a=PyZenity.InfoMessage('Backup process will now start. Note that it may take a while if you have tons of large files and saves. Do not turn off your Pandora until completion',timeout=10)
+
+#as the function name says... returns result in megabytes
+def returnfreespaceondrive(drive):
+	driveinfo=os.statvfs(drive)
+	totalAvailSpace = int((driveinfo.f_bsize*disk.f_bfree)/1024/1014)
+	return totalAvailSpace
+
 
 #main program
 def bgs():
