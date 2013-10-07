@@ -105,6 +105,9 @@ def makearchivefile():
   
   global directorytobackup, directories, today, shutil
   
+  eval=evaluatebackupsizebeforearchive()
+  a=PyZenity.InfoMessage('The elements to backup amount to about {0} Mb. It will likely be a little smaller after archiving'.format(eval),timeout=10)
+
   sizeofarchive=0
   pathtoarchive=""
   print directories
@@ -227,6 +230,16 @@ def returnfreespaceondrive(drive):
 	totalAvailSpace = int((driveinfo.f_bsize*disk.f_bfree)/1024/1014)
 	return totalAvailSpace
 
+#will give an estimation of the size to backup before doing the actual archive
+def evaluatebackupsizebeforearchive():
+	global directorytobackup
+	totalsize=0
+	
+	for directory in directorytobackup:
+		totalsize+=os.path.getsize(directory)
+		
+	totalsize=int(totalsize/1024/1024)
+	return totalsize
 
 #main program
 def bgs():
