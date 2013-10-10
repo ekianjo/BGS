@@ -81,7 +81,7 @@ def backupspecific(progname,appdatafolder,listfolders,listfiles):
 			print "the program " + progname +".pnd does not have a appdata folder so far." 
 		  else:
 			
-			directoriesinappfolder=os.listdir(("/media/{0}/pandora/appdata/{1}").format(topdirectory,appdatafolder))
+			directoriesinappfolder=os.listdir(("/media/{0}/pandora/appdata/{1}".format(topdirectory,appdatafolder)))
 			
 			#marks folders to save
 			for onefolder in directoriesinappfolder:
@@ -94,7 +94,7 @@ def backupspecific(progname,appdatafolder,listfolders,listfiles):
 			#need to build functions for files as well
 			for filetobackup in listfiles:
 				result=[]
-				result=glob.glob("/media/{0}/pandora/appdata/{1}/{2}").format(topdirectory,appdatafolder,filetobackup)
+				result=glob.glob("/media/{0}/pandora/appdata/{1}/{2}".format(topdirectory,appdatafolder,filetobackup))
 				if result!=[]:
 					for resultat in result:
 						directorytobackup.append(resultat)
@@ -123,20 +123,23 @@ def makearchivefile():
 		  tar = tarfile.open(pathtoarchive, "w:gz")
 		  
 		  #define nb of directories to backup
-		  nbdirectoriestobackup=len(directorytobackup)
+		  nbdirectoriestobackup=float(len(directorytobackup))
 		  print nbdirectoriestobackup
 		  
 		  #there will probably be bugs inside this part... need to check it out!!
 		  cmd = 'zenity --progress --text="Backup Up Games Saves..." --auto-close'
 		  proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		  try:
-		  	n=0
+		  	n=0.0
 		  	for folder in directorytobackup:
 		  		n+=1
+		  		print n
 				tar.add(folder)
 				print "added "+folder
-				progress=str(int(100*(n/nbdirectoriestobackup)))
-				proc.stdin.write("{0}".format(progress))
+				progress=int(100*(float(n/nbdirectoriestobackup)))
+				print progress
+				#putain faut pas oublier le n pour zenity progress bar!!
+				proc.stdin.write("{0}\n".format(progress))
 			if not proc.returncode:
 				print "Your job finished"
 			else:
@@ -152,7 +155,7 @@ def makearchivefile():
 		if len(directories)>1:
 			
 			print pathtoarchive
-			if returnfreespaceondrive('media/{0}'.format(topdirectory))>sizeofarchive:
+			if returnfreespaceondrive('/media/{0}'.format(topdirectory))>sizeofarchive:
 				
 				shutil.copyfile(pathtoarchive,'/media/{0}/{1}'.format(topdirectory,archivename))
 				print "Copy completed on the volume "+topdirectory
@@ -247,19 +250,31 @@ def displayprogstobackup():
 #as the function name says... returns result in megabytes
 def returnfreespaceondrive(drive):
 	driveinfo=os.statvfs(drive)
-	totalAvailSpace = int((driveinfo.f_bsize*disk.f_bfree)/1024/1014)
+	totalAvailSpace = int((driveinfo.f_bsize*driveinfo.f_bfree)/1024/1014)
 	return totalAvailSpace
 
 #will give an estimation of the size to backup before doing the actual archive
 def evaluatebackupsizebeforearchive():
 	global directorytobackup
-	totalsize=0
+	totalsizetop=0
 	
 	for directory in directorytobackup:
-		totalsize+=os.path.getsize(directory)
-		
-	totalsize=int(totalsize/1024/1024)
+		totalsizetop+=getsize(directory)
+	
+	print totalsizetop	
+	totalsizetop=int(totalsizetop/1024/1024)
+	print totalsizetop
+	return totalsizetop
+
+#thanks stackoverflow!
+def getsize(startpath):
+	totalsize=0
+	for dirpath, dirnames, filenames in os.walk(startpath):
+		for f in filenames:
+			fp=os.path.join(dirpath,f)
+			totalsize+=os.path.getsize(fp)
 	return totalsize
+	
 
 #main program
 def bgs():
