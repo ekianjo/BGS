@@ -9,7 +9,7 @@
 #If you modify this Program, or any covered work, by linking or combining it with [name of library] (or a modified version of that library), containing parts covered by the terms of [name of library's license], the licensors of this Program grant you additional permission to convey the resulting work. {Corresponding Source for a non-source form of such a combination shall include the source code for the parts of [name of library] used as well as that of the covered work.}
 
 
-import os, tarfile, time, shutil
+import os, tarfile, time, shutil, subprocess
 import argparse, PyZenity, glob
 from datetime import date
 
@@ -121,9 +121,29 @@ def makearchivefile():
 		  pathtoarchive="/media/{0}/{1}".format(topdirectory,archivename)
 		  
 		  tar = tarfile.open(pathtoarchive, "w:gz")
-		  for folder in directorytobackup:
-			tar.add(folder)
-			print "added "+folder
+		  
+		  #define nb of directories to backup
+		  nbdirectoriestobackup=len(directorytobackup)
+		  print nbdirectoriestobackup
+		  
+		  #there will probably be bugs inside this part... need to check it out!!
+		  cmd = 'zenity --progress --text="Backup Up Games Saves..." --auto-close'
+		  proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+		  try:
+		  	n=0
+		  	for folder in directorytobackup:
+		  		n+=1
+				tar.add(folder)
+				print "added "+folder
+				progress=str(int(100*(n/nbdirectoriestobackup)))
+				proc.stdin.write("{0}".format(progress))
+			if not proc.returncode:
+				print "Your job finished"
+			else:
+				print "You have cancelled"
+		  except: 
+		  	proc.terminate()
+			
 		  tar.close()
 		  sizeofarchive=int((os.path.getsize(pathtoarchive))/(1024*1024))
 		  a=PyZenity.InfoMessage('Backup has been completed as {0} in /media/{1}/. The file size is {2} Mb.It will now be duplicated on the other SD card (if you have another one inserted)'.format(archivename,topdirectory,sizeofarchive),timeout=15)
