@@ -57,6 +57,12 @@ listoftemplates=[
 ,('vvvvvv.pnd','vvvvvv',['.vvvvvv'],[],[])
 ,('outofthisworld.pnd','outofthisworld',['home'],[],[])
 ,('paperwars-v1.0.0-ekianjo.pnd','paperwars',['Save'],[],[])
+,('homeworld.pnd','homeworld',['cfg'],[],[])
+,('freeciv.pnd','freeciv',['*ALLFOLDER*'],[],[])
+,('microbes1.0rel2-1.pnd','microbes',['*ALLFOLDER*'],[],[])
+#,('','',['',''],[],[])
+#,('','',['',''],[],[])
+#,('','',['',''],[],[])
 #,('','',['',''],[],[])
 ]
 
