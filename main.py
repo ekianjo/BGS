@@ -52,7 +52,11 @@ listoftemplates=[
 ,('pushover.pnd','pushover',['.pushover'],[],[])
 ,('projectx_ptitseb.pnd','projectx',['savegame'],[],[])
 ,('nubnub.pnd','nubnub',['*ALLFOLDER*'],['uploadedscore','settings','hiscore'],[])
-#,('','',['',''],[],[])
+,('mupen64plus2.pnd','mupen64plus2',['*ALLFOLDER*'],[],[])
+,('prequengine.pnd','prequengine',['save'],[],[])
+,('vvvvvv.pnd','vvvvvv',['.vvvvvv'],[],[])
+,('outofthisworld.pnd','outofthisworld',['home'],[],[])
+,('paperwars-v1.0.0-ekianjo.pnd','paperwars',['Save'],[],[])
 #,('','',['',''],[],[])
 ]
 
