@@ -52,6 +52,7 @@ To Do
 -----
 
 - A Restore Tool.
-- Size estimation before backup
-- Checking free space before backup both on SD1 and SD2
+- ~~Size estimation before backup~~ done but rough...
+- Checking free space before backup both on SD1 ~~and SD2~~ done on SD2, not really implemented on SD1
 - Running as a background task, in order to run every couple of days or so? 
+- Adding transfer to FTP server (ongoing)
