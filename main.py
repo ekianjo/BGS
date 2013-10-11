@@ -9,7 +9,7 @@
 #If you modify this Program, or any covered work, by linking or combining it with [name of library] (or a modified version of that library), containing parts covered by the terms of [name of library's license], the licensors of this Program grant you additional permission to convey the resulting work. {Corresponding Source for a non-source form of such a combination shall include the source code for the parts of [name of library] used as well as that of the covered work.}
 
 
-import os, tarfile, time, shutil, subprocess
+import os, tarfile, time, shutil, subprocess, ftplib
 import argparse, PyZenity, glob
 from datetime import date
 
@@ -275,6 +275,33 @@ def getsize(startpath):
 			totalsize+=os.path.getsize(fp)
 	return totalsize
 	
+def uploadtoftp(file,filename):
+	a=PyZenity.Question("You can also upload the archive to a FTP server for additionnal redundancy. Note that it may take a while depending on your connection and the size of your backup file. Proceed ?")
+	if a==True:
+		serveraddress=PyZenity.GetText("Please input your ftp server address (ftp.xxx.xxx)")
+		username=PyZenity.GetText("Please specify your user name for your ftp access")
+		password=PyZenity("Please insert your password for your ftp access",password=True)
+		success=False
+		try:
+			session = ftplib.FTP(serveraddress,username,password)
+			success=True
+			
+		except: 
+			a=PyZenity.InfoMessage("The FTP connection did not work. Aborting.")
+			
+		if success==True:
+			file = open(file,'rb')                  # file to send
+			session.storbinary('STOR {0}'.format(filename), file,8192,callbackftp)     # send the file
+			file.close()                                    # close file and FTP
+			session.quit()
+			a=PyZenity.InfoMessage("FTP transfer complete.")
+	else:
+		pass
+
+
+def callbackftp(p):
+	print "I am a callback function"
+
 
 #main program
 def bgs():
