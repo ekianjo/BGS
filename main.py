@@ -294,6 +294,7 @@ def uploadtoftp(file,filename):
 			
 		except: 
 			a=PyZenity.InfoMessage("The FTP connection did not work. Aborting.")
+			success=False
 			
 		if success==True:
 			file = open(file,'rb')                  # file to send
