@@ -143,7 +143,7 @@ def makearchivefile():
 		  print nbdirectoriestobackup
 		  
 		  #there will probably be bugs inside this part... need to check it out!!
-		  cmd = 'zenity --progress --text="Backup Up Games Saves..." --auto-close'
+		  cmd = 'zenity --progress --text="Backing Up Games Saves..." --auto-close'
 		  proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		  try:
 		  	n=0.0
@@ -172,10 +172,12 @@ def makearchivefile():
 			
 			print pathtoarchive
 			if returnfreespaceondrive('/media/{0}'.format(topdirectory))>sizeofarchive:
-				
-				shutil.copyfile(pathtoarchive,'/media/{0}/{1}'.format(topdirectory,archivename))
-				print "Copy completed on the volume "+topdirectory
-				a=PyZenity.InfoMessage('For redundancy purpose, {0} has also been copied to /media/{1}/'.format(archivename,topdirectory),timeout=3)
+				try:
+					shutil.copyfile(pathtoarchive,'/media/{0}/{1}'.format(topdirectory,archivename))
+					print "Copy completed on the volume "+topdirectory
+					a=PyZenity.InfoMessage('For redundancy purpose, {0} has also been copied to /media/{1}/'.format(archivename,topdirectory),timeout=3)
+				except:
+					a=PyZenity.InfoMessage('There was some issue during the duplication process. The duplication step will be skipped')
 			else:
 				a=PyZenity.InfoMessage('It appears that you lack free space on /media/{0}/ to copy the archive of {1} Mb. The duplication step will be skipped.'.format(topdirectory,sizeofarchive),timeout=3)
 
