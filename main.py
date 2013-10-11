@@ -51,7 +51,7 @@ listoftemplates=[
 ,('8Blitter.pnd','8blitter.lordus',['data'],[],[])
 ,('pushover.pnd','pushover',['.pushover'],[],[])
 ,('projectx_ptitseb.pnd','projectx',['savegame'],[],[])
-,('nubnub.pnd','nubnub',[],['uploadedscore','settings','hiscore'],[])
+,('nubnub.pnd','nubnub',['*ALLFOLDER*'],['uploadedscore','settings','hiscore'],[])
 #,('','',['',''],[],[])
 #,('','',['',''],[],[])
 ]
@@ -83,21 +83,27 @@ def backupspecific(progname,appdatafolder,listfolders,listfiles):
 			
 			directoriesinappfolder=os.listdir(("/media/{0}/pandora/appdata/{1}".format(topdirectory,appdatafolder)))
 			
-			#marks folders to save
-			for onefolder in directoriesinappfolder:
-			  for foldertobackup in listfolders:
-				if onefolder==foldertobackup:
-				  print progname+":found folder "+ onefolder+" to backup"				  
-				  directorytobackup.append(("/media/{0}/pandora/appdata/{1}/{2}").format(topdirectory,appdatafolder,onefolder))
-				  #add the path worklist to backup where we will give the final instructions to zip in the end
-  
-			#need to build functions for files as well
-			for filetobackup in listfiles:
-				result=[]
-				result=glob.glob("/media/{0}/pandora/appdata/{1}/{2}".format(topdirectory,appdatafolder,filetobackup))
-				if result!=[]:
-					for resultat in result:
-						directorytobackup.append(resultat)
+			#special case of ALLFOLDER: where everything is to backup in the said folder
+			if listfolders[0]=='*ALLFOLDER*':
+				directorytobackup.append(("/media/{0}/pandora/appdata/{1}").format(topdirectory,appdatafolder))
+
+			else:
+			
+				#marks folders to save
+				for onefolder in directoriesinappfolder:
+				  for foldertobackup in listfolders:
+					if onefolder==foldertobackup:
+					  print progname+":found folder "+ onefolder+" to backup"				  
+					  directorytobackup.append(("/media/{0}/pandora/appdata/{1}/{2}").format(topdirectory,appdatafolder,onefolder))
+					  #add the path worklist to backup where we will give the final instructions to zip in the end
+	  
+				#need to build functions for files as well
+				for filetobackup in listfiles:
+					result=[]
+					result=glob.glob("/media/{0}/pandora/appdata/{1}/{2}".format(topdirectory,appdatafolder,filetobackup))
+					if result!=[]:
+						for resultat in result:
+							directorytobackup.append(resultat)
 			
 			
 #builds the archive files
