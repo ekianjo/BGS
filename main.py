@@ -60,7 +60,7 @@ listoftemplates=[
 ,('homeworld.pnd','homeworld',['cfg'],[],[])
 ,('freeciv.pnd','freeciv',['*ALLFOLDER*'],[],[])
 ,('microbes1.0rel2-1.pnd','microbes',['*ALLFOLDER*'],[],[])
-#,('','',['',''],[],[])
+,('mooboy.mrz.pnd','mooboy.mrz',['*ALLFOLDER*'],[],[])
 #,('','',['',''],[],[])
 #,('','',['',''],[],[])
 #,('','',['',''],[],[])
