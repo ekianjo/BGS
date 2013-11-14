@@ -227,6 +227,20 @@ def defineglobaldirectories():
   if debug==True: 
     print directories
 
+#Start of restore function. First, find out how to read the name. 
+def listarchivecontents(archivename):
+	resultsarray=[]
+	tar=tarfile.open(archivename)
+	for filename in tar.getnames():
+		#print filename
+		resultsarray+=filename
+	
+	print resultsarray
+	
+#need to have function to sort array results after, and make a list of what can be recovered. Use the program definition in beginning.
+
+	
+
 #finds previous BGS files if they exist and ask to erase or not
 def findpreviousbgs():
 	global directories
