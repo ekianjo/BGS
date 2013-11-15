@@ -228,16 +228,24 @@ def defineglobaldirectories():
     print directories
 
 #Start of restore function. First, find out how to read the name. 
-def listarchivecontents(archivename):
+def listarchivecontents(archivename,filtername):
 	resultsarray=[]
 	tar=tarfile.open(archivename)
 	for filename in tar.getnames():
-		#print filename
-		resultsarray+=filename
-	
+		if filtername in filename:
+			#print filename
+			resultsarray.append(filename)
+			
 	print resultsarray
+	return resultsarray
 	
 #need to have function to sort array results after, and make a list of what can be recovered. Use the program definition in beginning.
+#need to modify the main menu too
+
+
+def extractsinglefile(member,keydirectory):
+	#need to confirm before on which card to restore the data.	
+	tarfile.extract(member,path=keydirectory)
 
 	
 
