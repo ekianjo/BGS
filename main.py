@@ -273,8 +273,13 @@ def findpreviousbgs():
 			for element in result:
 				os.remove(element)
 			a=PyZenity.InfoMessage("Previous BGS files were deleted")
+			return False
 		else:
 			a=PyZenity.InfoMessage("Previous BGS files were kept")					
+			return True
+	else:
+		return False
+	#what is returned here is whether there are BGS files or not. True if there are. False if not.
 
 #displays the list of programs found to be backed up for save data
 def displayprogstobackup():
@@ -351,8 +356,13 @@ def bgs():
   a=PyZenity.InfoMessage('Welcome to BGS. This tool will backup your saved games from numerous emulators or native games, and save them in a single archive. That archive will then be saved on your SD Card and duplicated on your second SD card if you have any inserted, to fight the risk of data loss by redundancy.',timeout=15)
   defineglobaldirectories()
   
-  findpreviousbgs()
-    
+  b=findpreviousbgs()
+  if b==True:
+  	c=PyZenity.List(["",""],title="What do you want to do ?",boolstyle="radiolist",data=[("1","I want to make a new backup"),("2","I want to restore a backup")])
+	print c  	
+  	
+  #make condition for c result after depending on choice
+  
   for programtobackup in listoftemplates:
     backupspecific(programtobackup[0],programtobackup[1],programtobackup[2],programtobackup[3])
   
