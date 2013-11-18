@@ -227,17 +227,50 @@ def defineglobaldirectories():
   if debug==True: 
     print directories
 
+
+#flow
+#select archive -> get archivename
+#list archive contents / DONE
+#display files to restore
+#let user select which game saves to restore
+#let user choose exact files to restore (maybe?)
+#let user choose card in which to restore the file
+#warn if file already exists
+#restore it
+
+#select archive
+def selectwhicharchivetouse():
+	pass
+
+
+
+
 #Start of restore function. First, find out how to read the name. 
-def listarchivecontents(archivename,filtername):
+def listarchivecontents(archivename):
 	resultsarray=[]
+	filesarray=[]
 	tar=tarfile.open(archivename)
 	for filename in tar.getnames():
-		if filtername in filename:
-			#print filename
-			resultsarray.append(filename)
-			
-	print resultsarray
-	return resultsarray
+		for element in listoftemplates:
+			if "appdata/{0}".format(element[1]) in filename:
+				#print filename
+				filesarray.append(filename)
+				resultsarray.append(element[0])
+	print filesarray, resultsarray
+	return filesarray, resultsarray
+	
+def displayresultstorestore():
+	
+	#call selectwhicharchivetouse
+	#call listarchivecontents
+	#get results of listarchivecontents in data
+	archive=selectwhicharchivetouse()
+	datatodisplay,filesdata=listarchivecontents(archive)
+	c=PyZenity.List([""],title="Which archive do you want to restore ?",boolstyle="checklist",data=datatodisplay)
+
+	pass
+
+
 	
 #need to have function to sort array results after, and make a list of what can be recovered. Use the program definition in beginning.
 #need to modify the main menu too
@@ -359,7 +392,9 @@ def bgs():
   b=findpreviousbgs()
   if b==True:
   	c=PyZenity.List(["",""],title="What do you want to do ?",boolstyle="radiolist",data=[("1","I want to make a new backup"),("2","I want to restore a backup")])
-	print c  	
+	print c
+	
+	
   	
   #make condition for c result after depending on choice
   
