@@ -240,8 +240,10 @@ def defineglobaldirectories():
 
 #select archive
 def selectwhicharchivetouse():
-	pass
-
+	
+	listarchives=returnpreviousbgs()
+	c=PyZenity.List([""],title="Which BGS file do you want to use ?",boolstyle="radiolist",data=listarchives)
+	return c
 
 
 
@@ -268,19 +270,35 @@ def displayresultstorestore():
 	datatodisplay,filesdata=listarchivecontents(archive)
 	c=PyZenity.List([""],title="Which archive do you want to restore ?",boolstyle="checklist",data=datatodisplay)
 
-	pass
+	#lier le nom avec le filesarray
+	#extractsinglefile(trucarentrerici)
 
-
-	
 #need to have function to sort array results after, and make a list of what can be recovered. Use the program definition in beginning.
 #need to modify the main menu too
 
 
-def extractsinglefile(member,keydirectory):
+def extractsinglefile(member):
 	#need to confirm before on which card to restore the data.	
+	global directories
+	keydirectory=PyZenity.List([""],title="In which SD Card do you want to restore the data?",boolstyle="radiolist",data=directories)
+
 	tarfile.extract(member,path=keydirectory)
 
 	
+
+def returnpreviousbgs():
+	global directories
+	result=[]
+	for topdirectory in directories:
+		caca=glob.glob('/media/{0}/BGS*'.format(topdirectory))
+		if caca!=[]:
+			for element in caca:
+				
+				result.append(element)
+	
+	if result!=[]:
+		return result
+		
 
 #finds previous BGS files if they exist and ask to erase or not
 def findpreviousbgs():
