@@ -66,6 +66,28 @@ listoftemplates=[
 #,('','',['',''],[],[])
 ]
 
+
+class Yadcoco:
+	
+	def __init__(self):
+		
+		self.window="./yad "
+		
+	def dialog(self,titre,width,height,text,fields):
+		
+		self.window+=" --title={0} --width={1} --height={2} --text-info={3}".format(titre,width,height,text)
+		self.show()
+	
+	def show():
+		from subprocess import check_output
+		self.window+=" ;echo $?"
+		from locale import getdefaultlocale
+		encoding = getdefaultlocale()[1]
+		result = check_output(self.yadwindow,shell=True).decode(encoding)
+		return(result.splitlines())
+		print (result.splitlines())
+		
+
 appsfolder=['menu','desktop','apps']
 directorytobackup=[]
 programsfound=[]
