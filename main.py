@@ -13,6 +13,9 @@ import os, tarfile, time, shutil, subprocess, ftplib
 import argparse, PyZenity, glob
 from datetime import date
 
+#try implementation of Google Drive + FTP
+
+
 #will do argparse later
 #parser = argparse.ArgumentParser(description='This Program Backups Game Saves for Major Emulators on the Open Pandora Handheld')
 # -g / start GUI
