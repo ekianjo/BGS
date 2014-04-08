@@ -80,6 +80,16 @@ class Yadcoco:
 		
 		self.window+=" --title={0} --width={1} --height={2} --text-info={3}".format(titre,width,height,text)
 		self.show()
+		
+	def notificationtimeout(self,titre,width,height,text,time,fields):
+		
+		self.window+=" --title={0} --width={1} --height={2} --text-info={3} --timeout={4} --timeout-indicator='right'".format(titre,width,height,text,time)
+		self.show()
+		
+	def splashscreen(self,width,height,image):
+		
+		self.window+=" --no-buttons --undecorated --image=logo.png --image-on-top --timeout=3 --timeout-indicator='right'"
+		self.show()
 	
 	def show():
 		from subprocess import check_output
@@ -450,5 +460,5 @@ def bgs():
   
   a=PyZenity.InfoMessage('The application will now auto-close. Thanks for using it! Remember you should have these backups in case one of your card fails!',timeout=3)
 
-
+Yadcoco.dialog("yo salut",400,300,"ca va?")
 bgs()
