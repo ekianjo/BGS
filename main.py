@@ -1,4 +1,4 @@
-#  bgs.py
+#  main.py
 #  
 #  Copyright 2014 Ekianjo and Dominik Leicht (kickass) <domi.leicht@gmail.com>
 #  
@@ -39,7 +39,7 @@ BGS has 3 main funtions:
 2. Send that backup file to the cloud automatically (google drive a.t.m.).
 3. Automatically restore from an earlier backup.
 
-BGS now uses pydrive (__link to pydrive__) to manage google drive file access and authorization.
+BGS now uses pydrive (http://pythonhosted.org/PyDrive/) to manage google drive file access and authorization.
 I had to rewrite a portion of pydrive's code to make browser based authorization work on the pandora.
 So it's kind of tailored specifically for the pandora and may not work on other devices. Keep that in mind if you want to use that code.
 

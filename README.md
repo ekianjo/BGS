@@ -1,7 +1,7 @@
 BGS
 ===
 
-Backup Game Saves is a Python tool to enable automatic backup of saved games and save states from emulators working on the Open Pandora (Linux handheld). It also duplicates the backup file on all SD-cards/connected storages units in /media available on the Pandora at the time of execution. 
+Backup Game Saves is a Python tool to enable automatic backup of saved games and save states from emulators working on the Open Pandora (Linux handheld). It also duplicates the backup file to a destination of your choice. 
 
 Supported Platforms
 -------------------
@@ -37,11 +37,42 @@ It currently supports backup up saved games for the following applications:
 - 8Blitter, Master System/GameGear emulator
 - Pushover
 - Projectx, Forsaken-like game	
+- NubNub	
+
+Since 0.2.2 :
+- Mupen2.0
+- LBA via prequengine
+- VVVVVV
+- Out of This World
+- Paper Wars
+- Homeworld
+- Freeciv
+- Microbes
+
+Since 0.2.3 : 
+- Mooboy, GB emulator
+
+Since 0.2.4 : 	
+- area2048
+- Boson x
+- ZDoom
+- Widelands
+- Super Hexagon
+- Snowman Reloaded
+- Pandora Nanolemmings
+- Double Cross
+- Dopewars
+- Metroidclassic
+- Not pacman
+- Not tetris
+- Openttd
+- Reicast	
 
 Requirements
 ------------
 
-You will need Python 2.6+ to run this, as well as argparse (not actively used currently but will be) and PyZenity. 
+You will need Python 2.6+ and PyZenity to run this.
+Google authentication needs a JScript capable browser, so you will also need one of these: firefox, qupzilla or babypanda.
 
 License
 -------
@@ -51,8 +82,8 @@ Licensed under GPL v3
 To Do
 -----
 
-- A Restore Tool.
-- ~~Size estimation before backup~~ done but rough...
-- Checking free space before backup both on SD1 ~~and SD2~~ done on SD2, not really implemented on SD1
-- Running as a background task, in order to run every couple of days or so? 
-- Adding transfer to FTP server (ongoing)
+- A Restore Tool. 
+- Running unattended as a background task (without any gui), in order to run every couple of days or so?
+- Backups on a per game/emulator basis (almost there)
+- Better compression mechanism
+- Implement other cloud services
