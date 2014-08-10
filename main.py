@@ -1,464 +1,492 @@
-#Copyright (C) [2013] [Ekianjo (alias)]
-#This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
+#  main.py
+#  
+#  Copyright 2014 Ekianjo and Dominik Leicht (kickass) <domi.leicht@gmail.com>
+#  
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#  
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+#  MA 02110-1301, USA.
+#  
+#  This software was designed to be freeware.
 
-#This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+'''
+BGS - Backup Game Saves v0.2.5.0
+-----------------------
+Initial app design by Ekianjo up until v0.2.4.2
+Code refinement and additions since v0.2.5.0 by kickass
+-----------------------
+Version history:
 
-#You should have received a copy of the GNU General Public License along with this program; if not, see <http://www.gnu.org/licenses>.
+v0.2.5.0 (Aug 2014):	added google drive support:
+			changed the gui design
+			introduced a backup logging file (bgs.log)
+			(backups on a per game/emulator basis)
+			(reestore functionality)
+-----------------------
+BGS has 3 main funtions:
 
-#Additional permission under GNU GPL version 3 section 7
-#If you modify this Program, or any covered work, by linking or combining it with [name of library] (or a modified version of that library), containing parts covered by the terms of [name of library's license], the licensors of this Program grant you additional permission to convey the resulting work. {Corresponding Source for a non-source form of such a combination shall include the source code for the parts of [name of library] used as well as that of the covered work.}
+1. Search your handheld for games/emulators and offer to archive the corresponding gamesaves in a backup file to prevent data loss.
+2. Send that backup file to the cloud automatically (google drive a.t.m.).
+3. Automatically restore from an earlier backup.
 
+BGS now uses pydrive (http://pythonhosted.org/PyDrive/) to manage google drive file access and authorization.
+I had to rewrite a portion of pydrive's code to make browser based authorization work on the pandora.
+So it's kind of tailored specifically for the pandora and may not work on other devices. Keep that in mind if you want to use that code.
 
-import os, tarfile, time, shutil, subprocess, ftplib
-import argparse, PyZenity, glob
-from datetime import date
+BGS will upload/download backup files to/from a "_bgs" folder in your drive account.
+The idea behind google drive support is this:
+You probably play the same game on different platforms (linux, win, pandora, damn, maybe even xbox360...).
+With cloud backups you take your gamesaves with you and do not depend on an individual system (as emulators run on many platforms).
+Also its a reliable mechanism to prevent data loss.
 
-#try implementation of Google Drive + FTP
+Please enjoy this software as much as we do :)
 
+ToDo List:
+- backups on a per game/emulator basis (decrease filesize and bandwith usage)
+- add additional cloud services
+- write a proper gui
+'''
 
-#will do argparse later
-#parser = argparse.ArgumentParser(description='This Program Backups Game Saves for Major Emulators on the Open Pandora Handheld')
-# -g / start GUI
-# -h / help
-# -b / which card to backup (sd card 1 or 2 or all)
-
-
-today=date.today()
-#get media list in /media and record them in variable
-#check if they are still here at launch of the application
-#template should contain following info: name of pnd, name of appdata folder, folder with save files, file extension of save file
-
-listoftemplates=[
-("gambatte.pnd","gambatte-qt",['saves','.config'],[],[])
-,('pcsx_rearmed_r19.pnd','pcsx_rearmed',['.pcsx','screenshots'],[],[])
-,('drastic.pnd','DraStic',['.links','backup','config','profiles','savestates'],[],[])
-,('PPSSPP.pnd','PPSSPP',['home'],[],[])
-,('gpSP-pnd-0.9-2Xb-u8a.pnd','gpsp',['',''],[],[])
-,('UAE4ALLv2.0.pnd','uae4all',['saves','conf'],[],[])
-,('snes9x4p_20120226.pnd','snes9x.skeezix.alpha',['.snes96_snapshots'],[],[])
-,('gpfce_r2.pnd','gpfce',['fceultra'],[],[])
-,('gngeo_0.8.5.pnd','gngeo_pepone',['save','conf'],[],[])
-,('fba.pnd','fba-dave18',['savestates','screenshots','conf','config'],[],[])
-,('apkenv-v42.3.17.2.pnd','apkenv',['data'],[],[])
-,('darkplaces.pnd','darkplaces',['.darkplaces'],[],[])
-,('dunedynasty.pnd','dunedynasty',['dunedynasty'],[],[])
-,('scummvm-op.pnd','scummvm',['saves'],[],[])
-,('rtcw.pnd','rtcw',['home'],[],[])
-,('PicoDrive_190.pnd','picodrive',['srm','mds','cfg','brm'],[],[])
-,('freespace2.pnd','freespace2',['home'],[],[])
-,('exult-1.4.pnd','exult',['.exult'],[],[])
-,('cdoom.pnd','doom',['.chocolate-doom'],[],[])
-,('solarusdx-zsdx-11201.pnd','solarusdx',['.solarus'],[],[])
-,('pewpew2.pnd','pewpew2',['documents'],[],[])
-,('duke3d.pnd','duke3d',['.eduke32'],[],[])
-,('8Blitter.pnd','8blitter.lordus',['data'],[],[])
-,('pushover.pnd','pushover',['.pushover'],[],[])
-,('projectx_ptitseb.pnd','projectx',['savegame'],[],[])
-,('nubnub.pnd','nubnub',['*ALLFOLDER*'],['uploadedscore','settings','hiscore'],[])
-,('mupen64plus2.pnd','mupen64plus2',['*ALLFOLDER*'],[],[])
-,('prequengine.pnd','prequengine',['save'],[],[])
-,('vvvvvv.pnd','vvvvvv',['.vvvvvv'],[],[])
-,('outofthisworld.pnd','outofthisworld',['home'],[],[])
-,('paperwars-v1.0.0-ekianjo.pnd','paperwars',['Save'],[],[])
-,('homeworld.pnd','homeworld',['cfg'],[],[])
-,('freeciv.pnd','freeciv',['*ALLFOLDER*'],[],[])
-,('microbes1.0rel2-1.pnd','microbes',['*ALLFOLDER*'],[],[])
-,('mooboy.mrz.pnd','mooboy.mrz',['*ALLFOLDER*'],[],[])
-#,('','',['',''],[],[])
-#,('','',['',''],[],[])
-#,('','',['',''],[],[])
-]
+# Let the code begin...
+import os, sys, tarfile, shutil
+import PyZenity, glob
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+from datetime import datetime
 
 
-class Yadcoco:
-	
-	def __init__(self):
-		
-		self.window="./yad "
-		
-	def dialog(self,titre,width,height,text,fields):
-		
-		self.window+=" --title={0} --width={1} --height={2} --text-info={3}".format(titre,width,height,text)
-		self.show()
-		
-	def notificationtimeout(self,titre,width,height,text,time,fields):
-		
-		self.window+=" --title={0} --width={1} --height={2} --text-info={3} --timeout={4} --timeout-indicator='right'".format(titre,width,height,text,time)
-		self.show()
-		
-	def splashscreen(self,width,height,image):
-		
-		self.window+=" --no-buttons --undecorated --image=logo.png --image-on-top --timeout=3 --timeout-indicator='right'"
-		self.show()
-	
-	def show():
-		from subprocess import check_output
-		self.window+=" ;echo $?"
-		from locale import getdefaultlocale
-		encoding = getdefaultlocale()[1]
-		result = check_output(self.yadwindow,shell=True).decode(encoding)
-		return(result.splitlines())
-		print (result.splitlines())
-		
+def add2log(lfile, logdate, archivefile, dirs):
+	try:
+		with open (lfile, 'a') as handle:
+			handle.write(str(logdate)+": "+archivefile+" "+str(dirs)+"\n")
+		print "\nLog entry added..."
+	except Exception as err:
+		print err
 
-appsfolder=['menu','desktop','apps']
-directorytobackup=[]
-programsfound=[]
 
-directories=""
-debug=True
+def checkbrowsers(browserlist): # check a list of .desktop files for existance and add items to a list of existing browsers.
+	availablebrowsers=[]
+	for val in browserlist.itervalues():
+		if os.path.isfile(val[1]):
+			availablebrowsers.append(val)
+	return availablebrowsers
 
-#function that will do the backup itself
-def backupspecific(progname,appdatafolder,listfolders,listfiles):
-  
-  global directories, directorytobackup, programsfound
-  
-  for topdirectory in directories:
-	  
-	    workingfolder=checkprogram(progname,topdirectory)
-	    if workingfolder!="":
-		  programsfound.append(progname)
-		  
-		  print "working folder is "+ workingfolder
-		  #confirm the top level working folder under /media/xx/pandora/PAF  - it is not used after expect for path
-	  
-		  if checkappdata(appdatafolder,topdirectory)==False:
-			print "the program " + progname +".pnd does not have a appdata folder so far." 
-		  else:
-			
-			directoriesinappfolder=os.listdir(("/media/{0}/pandora/appdata/{1}".format(topdirectory,appdatafolder)))
-			
-			#special case of ALLFOLDER: where everything is to backup in the said folder
-			if listfolders[0]=='*ALLFOLDER*':
-				directorytobackup.append(("/media/{0}/pandora/appdata/{1}").format(topdirectory,appdatafolder))
+def parsedesktopfile(browserlist): # parse the existing browsers for their respective pnd_run commands.
+	for item in browserlist:
+		try:
+			with open(item[1], "r") as handle:
+				for line in handle:
+                			if line.startswith("Exec"):
+                				execline=line.strip("Exec=")
+                				print "Exec line found - containing the following cmd path:"
+                				print execline
+                				l=[]
+                				l.append(item[0])
+                				l.append(item[1])
+                				l.append(execline.strip('\n\r'))
+                				browsercmds.append(l)
+                			else:
+                				pass	
+		except Exception as err:
+			print err
+	return browsercmds # returns a list of browsername[0], path of desktopfile[1], pnd_run command[2]
 
+def kindofbackup(): # this is kind of a main menu
+	choicelist=[["Local backup only"],["Local + cloud backup"],["Restore from backup"]]
+	a=PyZenity.List(["Your choice"], text="BGS - Your trusty savegame backup solution\n\nThis little tool will search your handheld for installed games/emulators\nand will then backup the corresponding savegames\nor restore savegames from an earlier backup.", title="BGS - Backup Game Saves", height=300, editable=False, select_col=1, window_icon=iconfile, data=choicelist)
+	return a
+
+def backupspecific(progname,appdatafolder,listfolders,listfiles): # crawl the list of templates for path/filenames with gamesaves and get them ready to be archived
+	global directories, directorytobackup, programsfound
+	for topdirectory in directories: 
+		workingfolder=checkprogram(progname,topdirectory)
+		if workingfolder!="":
+			programsfound.append(progname)
+			print "working folder is "+ workingfolder #confirm the top level working folder under /media/xx/pandora/PAF  - it is not used after expect for path
+			if checkappdata(appdatafolder,topdirectory)==False:
+				print "the program " + progname +".pnd does not have a appdata folder so far." 
 			else:
-			
-				#marks folders to save
-				for onefolder in directoriesinappfolder:
-				  for foldertobackup in listfolders:
-					if onefolder==foldertobackup:
-					  print progname+":found folder "+ onefolder+" to backup"				  
-					  directorytobackup.append(("/media/{0}/pandora/appdata/{1}/{2}").format(topdirectory,appdatafolder,onefolder))
-					  #add the path worklist to backup where we will give the final instructions to zip in the end
+				directoriesinappfolder=os.listdir(("/media/{0}/pandora/appdata/{1}".format(topdirectory,appdatafolder)))
+				#special case of ALLFOLDER: where everything is to backup in the said folder
+				if listfolders[0]=='*ALLFOLDER*':
+					directorytobackup.append(("/media/{0}/pandora/appdata/{1}").format(topdirectory,appdatafolder))
+				else:
+					#marks folders to save
+					for onefolder in directoriesinappfolder:
+						for foldertobackup in listfolders:
+							if onefolder==foldertobackup:
+								print progname+":found folder "+ onefolder+" to backup"				  
+								directorytobackup.append(("/media/{0}/pandora/appdata/{1}/{2}").format(topdirectory,appdatafolder,onefolder)) #add the path worklist to backup where we will give the final instructions to zip in the end
 	  
 				#need to build functions for files as well
-				for filetobackup in listfiles:
-					result=[]
-					result=glob.glob("/media/{0}/pandora/appdata/{1}/{2}".format(topdirectory,appdatafolder,filetobackup))
-					if result!=[]:
-						for resultat in result:
-							directorytobackup.append(resultat)
-			
-			
-#builds the archive files
-def makearchivefile():
-  
-  global directorytobackup, directories, today, shutil
-  
-  eval=evaluatebackupsizebeforearchive()
-  a=PyZenity.InfoMessage('The elements to backup amount to about {0} Mb. It will likely be a little smaller after archiving'.format(eval),timeout=10)
+					for filetobackup in listfiles:
+						result=[]
+						result=glob.glob("/media/{0}/pandora/appdata/{1}/{2}".format(topdirectory,appdatafolder,filetobackup))
+						if result!=[]:
+							for resultat in result:
+								directorytobackup.append(resultat)
 
-  sizeofarchive=0
-  pathtoarchive=""
-  print directories
-
-  for topdirectory in directories:
-  
-	  if pathtoarchive=="":
-		  archivename="BGSfile{0}-{1}-{2}.tar.gz".format(today.year,today.month,today.day)
-		  if os.path.isfile("/media/{0}/{1}".format(topdirectory,archivename))==True :
+def makearchivefile(): # build the actual archive from given path/filenames
+	global directorytobackup, directories, today, shutil, archivename, archivefile
+	sizeofarchive=0
+	pathtoarchive=""
+	archivename="BGSfile{0}.tar.gz".format(today)
+	pathtoarchive=PyZenity.GetDirectory(multiple=False, title="Choose a path for your backup:", window_icon=iconfile, selected="/media", sep=None)
+	if pathtoarchive==None:
+		print "Canceled by user..."
+		sys.exit()
+	else :
+		print "pathtoarchive:"
+		print pathtoarchive
+		archivefile=pathtoarchive[0]+"/"+archivename # Maybe pathtoarchive is a list, maybe use [0]
+		print "Chosen path for the archive: "+archivefile
+		if os.path.isfile(archivefile)==True :
 			print "Careful, an archive with the same name already exists."
-		  pathtoarchive="/media/{0}/{1}".format(topdirectory,archivename)
-		  
-		  tar = tarfile.open(pathtoarchive, "w:gz")
-		  
-		  #define nb of directories to backup
-		  nbdirectoriestobackup=float(len(directorytobackup))
-		  print nbdirectoriestobackup
-		  
-		  #there will probably be bugs inside this part... need to check it out!!
-		  cmd = 'zenity --progress --text="Backing Up Games Saves..." --auto-close'
-		  proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-		  try:
-		  	n=0.0
-		  	for folder in directorytobackup:
-		  		n+=1
-		  		print n
-				tar.add(folder)
-				print "added "+folder
-				progress=int(100*(float(n/nbdirectoriestobackup)))
-				print progress
-				#putain faut pas oublier le n pour zenity progress bar!!
-				proc.stdin.write("{0}\n".format(progress))
-			if not proc.returncode:
-				print "Your job finished"
+		tar = tarfile.open(archivefile, "w:gz")
+		#define nb of directories to backup
+		nbdirectoriestobackup=float(len(directorytobackup))
+		print nbdirectoriestobackup
+		#there will probably be bugs inside this part... need to check it out!!
+		# kickass: funny, you imported PyZenity on purpose to make things easier, but decided to not use it in this case. i wonder why...
+		#cmd = 'zenity --progress --text="Backing Up Games Saves..." --auto-close'
+		#proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+		proc=PyZenity.Progress(title="BGS - Backup Game Saves", text=directorytobackup[0], auto_close=True)
+		n=0.0
+		for folder in directorytobackup:
+			n+=1
+			print n
+			tar.add(folder)
+			print "added "+folder
+			progress=int(100*(float(n/nbdirectoriestobackup)))
+			print progress
+			if progress < 100:
+				proc(progress,folder)
 			else:
-				print "You have cancelled"
-		  except: 
-		  	proc.terminate()
-			
-		  tar.close()
-		  sizeofarchive=int((os.path.getsize(pathtoarchive))/(1024*1024))
-		  a=PyZenity.InfoMessage('Backup has been completed as {0} in /media/{1}/. The file size is {2} Mb.It will now be duplicated on the other SD card (if you have another one inserted)'.format(archivename,topdirectory,sizeofarchive),timeout=15)
-		
-	  else: 
-		if len(directories)>1:
-			
-			print pathtoarchive
-			if returnfreespaceondrive('/media/{0}'.format(topdirectory))>sizeofarchive:
-				try:
-					shutil.copyfile(pathtoarchive,'/media/{0}/{1}'.format(topdirectory,archivename))
-					print "Copy completed on the volume "+topdirectory
-					a=PyZenity.InfoMessage('For redundancy purpose, {0} has also been copied to /media/{1}/'.format(archivename,topdirectory),timeout=3)
-				except:
-					a=PyZenity.InfoMessage('There was some issue during the duplication process. The duplication step will be skipped')
-			else:
-				a=PyZenity.InfoMessage('It appears that you lack free space on /media/{0}/ to copy the archive of {1} Mb. The duplication step will be skipped.'.format(topdirectory,sizeofarchive),timeout=3)
+				proc(progress)
+		tar.close()
+	sizeofarchive=int((os.path.getsize(archivefile))/(1024*1024))
+	a=PyZenity.Question(text="Backup has been completed as:\n"+archivefile+"\n\nThe file size is:\n"+str(sizeofarchive)+" Mb.\n\nDo you want to copy it to another location (redundancy, y'know')?\nIt makes sense to use a different disk here.", window_icon=iconfile)
+	if a == True:
+		pathtocopy=PyZenity.GetDirectory(multiple=False, title="Choose a path for the copy of your backup:", window_icon=iconfile, selected="/media", sep=None)
+		if pathtoarchive==None:
+			print "Canceled by user..."
+			sys.exit()
+		else :
+			cfile=pathtocopy[0]+"/"+archivename
+			print "pathtocopy:"
+			print pathtocopy
+			print "cfile: "+cfile
+			try:
+				shutil.copyfile(archivefile, cfile) # copy 
+				a=PyZenity.InfoMessage(text=archivefile+"\n was successfully copied to\n"+cfile, window_icon=iconfile)
+			except Error as err:
+				a=PyZenity.Warning(text="Whoooooops, something went wrong.\nHere's an error msg for you:'\n\n"+err, title="BGS - Backup Save Games", window_icon=iconfile)
+				sys.exit()
+	else:
+		pass
 
-		else:
-			a=PyZenity.InfoMessage('It appears you have only one SD Card inserted at the moment, and therefore the BGS file cannot be duplicated. Be aware you are exposed to a greater risk of data loss unless you duplicate this file somewhere else.',timeout=10)
-			
-			
-def checkprogram(progname,directory):
-  #returns folder if the PND is found in one of the appsfolder directory or "" if not found
-  global appsfolder
-  found=0
-  
-  for folder in appsfolder:
-    if os.path.isfile("/media/{0}/pandora/{1}/{2}".format(directory,folder,progname))==True :
-      print "Found "+ progname+ " in "+ folder+" in "+directory
-      found+=1
-  if found==0:
-    return ""
-  else:
-    return folder
-
-#checks if the related appfolder exists
-def checkappdata(appdatafolder,directory):
-  if os.path.isdir("/media/{0}/pandora/appdata/{1}".format(directory,appdatafolder))==True:
-    return True
-  else:
-    return False
-
-#checks if a certain folder exists
-def checkfolderexists(path,foldername):
-  if os.path.isdir(path+foldername):
-    return True
-  else:
-    return False
-
-def defineglobaldirectories():
-  #define the top levels directories in /media and writes a global variable
-  global directories, debug
-  directories=os.listdir("/media")
-  directories.remove("hdd")
-  directories.remove("ram")
-  
-  for directory in directories:
-	  if directory[0]==".":
-		  directories.remove(directory)
-  
-  if debug==True: 
-    print directories
+def checkprogram(progname,directory): #returns folder if the PND is found in one of the appsfolder directory or "" if not found
+	global appsfolder
+	found=0
+	for folder in appsfolder:
+		if os.path.isfile("/media/{0}/pandora/{1}/{2}".format(directory,folder,progname))==True :
+			print "Found "+ progname+ " in "+ folder+" in "+directory
+			found+=1
+	if found==0:
+		return ""
+	else:
+		return folder
 
 
-#flow
-#select archive -> get archivename
-#list archive contents / DONE
-#display files to restore
-#let user select which game saves to restore
-#let user choose exact files to restore (maybe?)
-#let user choose card in which to restore the file
-#warn if file already exists
-#restore it
+def checkappdata(appdatafolder,directory): #checks if the related appfolder exists
+	if os.path.isdir("/media/{0}/pandora/appdata/{1}".format(directory,appdatafolder))==True:
+		return True
+	else:
+		return False
 
-#select archive
-def selectwhicharchivetouse():
-	
-	listarchives=returnpreviousbgs()
-	c=PyZenity.List([""],title="Which BGS file do you want to use ?",boolstyle="radiolist",data=listarchives)
-	return c
+
+def checkfolderexists(path,foldername): #checks if a certain folder exists
+	if os.path.isdir(path+foldername):
+		return True
+	else:
+		return False
+
+def defineglobaldirectories(): #define the top levels directories in /media and writes a global variable
+	global directories, debug
+	directories=os.listdir("/media")
+	directories.remove("hdd")
+	directories.remove("ram")
+	for directory in directories:
+		if directory[0]==".":
+			directories.remove(directory) 
+	if debug==True: 
+		print directories
 
 
 
-#Start of restore function. First, find out how to read the name. 
-def listarchivecontents(archivename):
-	resultsarray=[]
-	filesarray=[]
-	tar=tarfile.open(archivename)
-	for filename in tar.getnames():
-		for element in listoftemplates:
-			if "appdata/{0}".format(element[1]) in filename:
-				#print filename
-				filesarray.append(filename)
-				resultsarray.append(element[0])
-	print filesarray, resultsarray
-	return filesarray, resultsarray
-	
-def displayresultstorestore():
-	
-	#call selectwhicharchivetouse
-	#call listarchivecontents
-	#get results of listarchivecontents in data
-	archive=selectwhicharchivetouse()
-	datatodisplay,filesdata=listarchivecontents(archive)
-	c=PyZenity.List([""],title="Which archive do you want to restore ?",boolstyle="checklist",data=datatodisplay)
-
-	#lier le nom avec le filesarray
-	#extractsinglefile(trucarentrerici)
-
-#need to have function to sort array results after, and make a list of what can be recovered. Use the program definition in beginning.
-#need to modify the main menu too
-
-
-def extractsinglefile(member):
-	#need to confirm before on which card to restore the data.	
-	global directories
-	keydirectory=PyZenity.List([""],title="In which SD Card do you want to restore the data?",boolstyle="radiolist",data=directories)
-
-	tarfile.extract(member,path=keydirectory)
-
-	
-
-def returnpreviousbgs():
+def findpreviousbgs(): #finds previous BGS files if they exist and ask to erase or not
 	global directories
 	result=[]
 	for topdirectory in directories:
 		caca=glob.glob('/media/{0}/BGS*'.format(topdirectory))
 		if caca!=[]:
 			for element in caca:
-				
 				result.append(element)
-	
-	if result!=[]:
-		return result
-		
-
-#finds previous BGS files if they exist and ask to erase or not
-def findpreviousbgs():
-	global directories
-	result=[]
-	for topdirectory in directories:
-		caca=glob.glob('/media/{0}/BGS*'.format(topdirectory))
-		if caca!=[]:
-			for element in caca:
-				
-				result.append(element)
-	
 	print result
-	
 	if result!=[]:
 		resultstring=""
 		sizetotal=0
 		for element in result:
 			resultstring+=element+" "
 			sizetotal+=int((os.path.getsize(element))/(1024*1024))
-		a=PyZenity.Question("I found previous BGS files: {0}.They are taking a total of {1} Mb in size. Ok to delete them and create new ones ?".format(resultstring,str(sizetotal)))
+		a=PyZenity.Question(text="I found previous BGS files: {0}.They are taking a total of {1} Mb in size. Ok to delete them and create new ones ?".format(resultstring,str(sizetotal)), title="BGS - Backup Game Saves", window_icon=iconfile)
 		if a==True:
 			for element in result:
 				os.remove(element)
-			a=PyZenity.InfoMessage("Previous BGS files were deleted")
-			return False
+			a=PyZenity.InfoMessage(text="Previous BGS files were deleted", title="BGS - Backup Game Saves", window_icon=iconfile)
 		else:
-			a=PyZenity.InfoMessage("Previous BGS files were kept")					
-			return True
-	else:
-		return False
-	#what is returned here is whether there are BGS files or not. True if there are. False if not.
+			a=PyZenity.InfoMessage(text="Previous BGS files were kept", title="BGS - Backup Game Saves", window_icon=iconfile)
 
-#displays the list of programs found to be backed up for save data
-def displayprogstobackup():
-  global programsfound
-  
-  programsfoundstring=""
-  for program in programsfound:
-	  programsfoundstring+=program + " "
-	  
-  a=PyZenity.InfoMessage('Found the following to backup: {0}'.format(programsfoundstring),timeout=10)
-  a=PyZenity.InfoMessage('Backup process will now start. Note that it may take a while if you have tons of large files and saves. Do not turn off your Pandora until completion',timeout=10)
 
-#as the function name says... returns result in megabytes
-def returnfreespaceondrive(drive):
-	driveinfo=os.statvfs(drive)
-	totalAvailSpace = int((driveinfo.f_bsize*driveinfo.f_bfree)/1024/1014)
-	return totalAvailSpace
 
-#will give an estimation of the size to backup before doing the actual archive
-def evaluatebackupsizebeforearchive():
+def displayprogstobackup(): #displays the list of programs found to be backed up for save data
+	global programsfound, proglist, backupsize
+	backupsize=evaluatebackupsizebeforearchive()
+	proglist=[]
+	programsfoundstring=""
+	for program in programsfound:
+		programsfoundstring+=program + " "
+	proglist.append(programsfound)
+	a=PyZenity.List(["Game"], text="Found the following games/emulators.\nFor now i will backup all of them.\n\nCurrent size of this backup (unzipped): "+str(backupsize)+" Mb", title="BGS - Backup Save Games", boolstyle=None, window_icon=iconfile, editable=False, select_col=None, sep='|', data=proglist)
+	return a
+
+
+
+def evaluatebackupsizebeforearchive(): #will give an estimation of the size to backup before doing the actual archive
 	global directorytobackup
 	totalsizetop=0
-	
 	for directory in directorytobackup:
 		totalsizetop+=getsize(directory)
-	
 	print totalsizetop	
 	totalsizetop=int(totalsizetop/1024/1024)
 	print totalsizetop
 	return totalsizetop
 
-#thanks stackoverflow!
-def getsize(startpath):
+
+
+def getsize(startpath): #thanks stackoverflow!
 	totalsize=0
 	for dirpath, dirnames, filenames in os.walk(startpath):
 		for f in filenames:
 			fp=os.path.join(dirpath,f)
 			totalsize+=os.path.getsize(fp)
 	return totalsize
-	
-def uploadtoftp(file,filename):
-	a=PyZenity.Question("You can also upload the archive to a FTP server for additionnal redundancy. Note that it may take a while depending on your connection and the size of your backup file. Proceed ?")
-	if a==True:
-		serveraddress=PyZenity.GetText("Please input your ftp server address (ftp.xxx.xxx)")
-		username=PyZenity.GetText("Please specify your user name for your ftp access")
-		password=PyZenity("Please insert your password for your ftp access",password=True)
-		success=False
-		try:
-			session = ftplib.FTP(serveraddress,username,password)
-			success=True
-			
-		except: 
-			a=PyZenity.InfoMessage("The FTP connection did not work. Aborting.")
-			success=False
-			
-		if success==True:
-			file = open(file,'rb')                  # file to send
-			session.storbinary('STOR {0}'.format(filename), file,8192,callbackftp)     # send the file
-			file.close()                                    # close file and FTP
-			session.quit()
-			a=PyZenity.InfoMessage("FTP transfer complete.")
+
+
+def initiategauth(): # get google authentication done properly. this, of course, does NOT need to be done with every file transaction.
+	global gauth
+	gauth = GoogleAuth()
+	gauth.LocalWebserverAuth(browsercmd=browsers[0][2]) # Creates local webserver and auto handles authentication
+	global drive
+	drive = GoogleDrive(gauth)
+
+
+def fileupload(fid, aname, afile): # upload a file to gdrive - fid is the fileID of the parent folder (_bgs), fname is the filename, of course
+	newfile = drive.CreateFile({'title':aname, "parents": [{"kind": "drive#fileLink","id":fid}]})
+	print "Now uploading: "+aname+"\nto folder: "+fid
+	newfile.SetContentFile(afile)
+	try:
+		proc=PyZenity.Progress(text='Uploading '+aname, title='BGS - Backup Game Saves', auto_close=True, percentage=1, pulsate=True)(0)
+		newfile.Upload()
+		print "upload done!"
+	except Exception as err:
+		print err
+		a=PyZenity.Warning(text="Whoooooops, something went wrong.\nHere's an error msg for you:'\n\n"+str(err), window_icon=iconfile)
+		sys.exit()
+
+
+def checkbgsfolder(): # check for a _bgs folder in the root dir of the gdrive account. if none is found it will be created. 
+	global drive
+	global folderid
+	folderthere=False
+	file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
+   	print "Contents of the gdrive root folder:"
+    	for file1 in file_list: # Auto-iterate through all files that match this query
+      		print 'title: %s, id: %s' % (file1['title'].encode('utf8'), file1['id'].encode('utf8'))
+		if "_bgs" in file1['title'].encode('utf8'):
+			folderthere=True
+			folderid=str(file1['id'].encode('utf8'))
+    		else:
+    			pass
+    	if folderthere is True:
+    		print "folder id: "+folderid
+    	else:
+      		newdir = drive.CreateFile({'title':'_bgs', 'mimeType':'application/vnd.google-apps.folder'}) # in the gdrive api folders are just files with a specific mime-type
+      		newdir.Upload()
+      		print "Created _bgs folder..."
+      		print "Re-checking for the folder to get the id..."
+		checkbgsfolder()
+
+
+def byebye():
+	a=PyZenity.InfoMessage(text="All done!\nThanks for using BGS :)", title="BGS - Backup Game Saves", window_icon=iconfile)
+	print "\nAll done. Thanks for using BGS!"
+
+
+def internet_on():
+	nstat = os.system('ping -c 1 8.8.8.8')
+	return nstat
+
+
+def bgs(): # main app
+	# Variables galore...
+	global today, uploaddone, listoftemplates, browserdict, availablebrowsers, browsercmds, browsers, appsfolder, directorytobackup, programsfound, emptylist, directories, debug, appdatapath, mypath, cfgfile, mypath, iconfile, logfile
+	today=datetime.today().strftime("%Y-%m-%d_%H%M%S")
+	#get media list in /media and record them in variable
+	#check if they are still here at launch of the application
+	#template should contain following info: name of pnd, name of appdata folder, folder with save files, file extension of save file
+	listoftemplates=[
+	("gambatte.pnd","gambatte-qt",['saves','.config'],[],[])
+	,('pcsx_rearmed_r19.pnd','pcsx_rearmed',['.pcsx','screenshots'],[],[])
+	,('drastic.pnd','DraStic',['.links','backup','config','profiles','savestates'],[],[])
+	,('PPSSPP.pnd','PPSSPP',['*ALLFOLDER*'],[],[])
+	,('gpSP-pnd-0.9-2Xb-u8a.pnd','gpsp',['',''],[],[])
+	,('UAE4ALLv2.0.pnd','uae4all',['saves','conf'],[],[])
+	,('snes9x4p_20120226.pnd','snes9x.skeezix.alpha',['.snes96_snapshots'],[],[])
+	,('gpfce_r2.pnd','gpfce',['fceultra'],[],[])
+	,('gngeo_0.8.5.pnd','gngeo_pepone',['save','conf'],[],[])
+	,('fba.pnd','fba-dave18',['savestates','screenshots','conf','config'],[],[])
+	,('apkenv-v42.3.17.2.pnd','apkenv',['data'],[],[])
+	,('darkplaces.pnd','darkplaces',['.darkplaces'],[],[])
+	,('dunedynasty.pnd','dunedynasty',['dunedynasty'],[],[])
+	,('scummvm-op.pnd','scummvm',['saves'],[],[])
+	,('rtcw.pnd','rtcw',['home'],[],[])
+	,('PicoDrive_190.pnd','picodrive',['srm','mds','cfg','brm'],[],[])
+	,('freespace2.pnd','freespace2',['home'],[],[])
+	,('exult-1.4.pnd','exult',['.exult'],[],[])
+	,('cdoom.pnd','doom',['.chocolate-doom'],[],[])
+	,('solarusdx-zsdx-11201.pnd','solarusdx',['.solarus'],[],[])
+	,('pewpew2.pnd','pewpew2',['documents'],[],[])
+	,('duke3d.pnd','duke3d',['.eduke32'],[],[])
+	,('8Blitter.pnd','8blitter.lordus',['data'],[],[])
+	,('pushover.pnd','pushover',['.pushover'],[],[])
+	,('projectx_ptitseb.pnd','projectx',['savegame'],[],[])
+	,('nubnub.pnd','nubnub',['*ALLFOLDER*'],['uploadedscore','settings','hiscore'],[])
+	,('mupen64plus2.pnd','mupen64plus2',['*ALLFOLDER*'],[],[])
+	,('prequengine.pnd','prequengine',['save'],[],[])
+	,('vvvvvv.pnd','vvvvvv',['.vvvvvv'],[],[])
+	,('outofthisworld.pnd','outofthisworld',['home'],[],[])
+	,('paperwars-v1.0.0-ekianjo.pnd','paperwars',['Save'],[],[])
+	,('homeworld.pnd','homeworld',['cfg'],[],[])
+	,('freeciv.pnd','freeciv',['*ALLFOLDER*'],[],[])
+	,('microbes1.0rel2-1.pnd','microbes',['*ALLFOLDER*'],[],[])
+	,('mooboy.mrz.pnd','mooboy.mrz',['*ALLFOLDER*'],[],[])
+	,('area2048_m-ht.pnd','area2048',['*ALLFOLDER*'],[],[])
+	,('bosonx.pnd','bosonx',['*ALLFOLDER*'],[],[])
+	,('zdoom.pnd','zdoom',['*ALLFOLDER*'],[],[])
+	,('widelands.pnd','widelands',['*ALLFOLDER*'],[],[])
+	,('super_hexagon_full.pnd','super_hexagon',['*ALLFOLDER*'],[],[])
+	,('snowman.pnd','snowman-reloaded',['*ALLFOLDER*'],[],[])
+	,('nanolemmings.pnd','nanolemmings',['*ALLFOLDER*'],[],[])
+	,('doublecross.pnd','doublecross',['*ALLFOLDER*'],[],[])
+	,('dopewars.pnd','dopewars',['*ALLFOLDER*'],[],[])
+	,('metroidclassic.pnd','metroidclassic',['*ALLFOLDER*'],[],[])
+	,('notpacman_ptitseb.pnd','notpacman',['*ALLFOLDER*'],[],[])
+	,('nottetris.pnd','nottetris',['*ALLFOLDER*'],[],[])
+	,('openttd.pnd','openttd',['*ALLFOLDER*'],[],[])
+	,('reicast.pnd','reicast',['*ALLFOLDER*'],[],[])
+	#,('starcraft.pnd','starcraft',['',''],[],[])
+	#,('','',['',''],[],[])
+	]
+	# browserdict is a dictionary template to look for installed javascript capable browsers (assuming there are .desktop files in /usr/share/applications) as we need one of those to do google auth. the pnd_run call will be parsed from the desktopfile.
+	browserdict={"firefox":["firefox","/usr/share/applications/hdonk_firefox_001#0.desktop"],
+	"qupzilla":["qupzilla","/usr/share/applications/qupzilla-app#0.desktop"],
+	"babypanda":["babypanda","/usr/share/applications/babypanda-app#0.desktop"]}
+	availablebrowsers=[]
+	uploaddone=False
+	browsercmds=[]
+	browsers=[]
+	appsfolder=['menu','desktop','apps']
+	directorytobackup=[]
+	programsfound=[]
+	emptylist=[]
+	directories=""
+	debug=False
+	appdatapath=""
+	cfgfile=""
+	appdatapath = os.getenv('APPDATADIR')
+	mypath = os.getenv('HOME')
+	#mypath = '/home/domi/projects/BGS'
+	logfile = appdatapath+"/bgs.log"
+	iconfile = mypath+"/icon.png"
+	defineglobaldirectories()
+	backupchoice=kindofbackup()
+	if backupchoice==None:
+		print "Canceled by user..."
+		sys.exit()
+# Local backup routine
+	elif backupchoice[0] == "Local backup only":
+		findpreviousbgs()
+		for programtobackup in listoftemplates:
+			backupspecific(programtobackup[0],programtobackup[1],programtobackup[2],programtobackup[3])
+		progdisplay=displayprogstobackup()
+		if progdisplay==None:
+			print "Canceled by user..."
+			sys.exit()
+		else:
+			print directorytobackup
+			makearchivefile()
+			add2log(logfile, today, archivefile, directorytobackup)
+			byebye()
+# Local + cloud backup routine
+	elif backupchoice[0] == "Local + cloud backup":
+		browsers=parsedesktopfile(checkbrowsers(browserdict))
+		print browsers
+		print
+		for item in browsers:
+			print "found: "+item[0]+" here:"+item[2]
+			print
+		if internet_on() != 0:
+			a=PyZenity.Warning(text="Can't reach the interwebs!\nGo check your connection.", title="BGS - Backup Save Games", window_icon=iconfile)
+			bgs()
+		else:
+			if browsers == "":
+				a=PyZenity.Warning(text="None of the required browsers [firefox,babypanda,qupzilla] seem to be installed.\nWe need one of these for Google authentication.\nPlease install at least one of them.", title="BGS - Backup Save Games", window_icon=iconfile)
+				bgs()
+			else:
+				findpreviousbgs()
+				for programtobackup in listoftemplates:
+					backupspecific(programtobackup[0],programtobackup[1],programtobackup[2],programtobackup[3])
+				progdisplay=displayprogstobackup()
+				if progdisplay==None:
+					print "Canceled by user..."
+					sys.exit()
+				else:
+					#directorytobackup=[directorytobackup[0]] # for gdrive upload testing purposes...
+					print directorytobackup
+					makearchivefile()
+					initiategauth()
+					checkbgsfolder()
+					print folderid
+					add2log(logfile, today, archivefile, directorytobackup)
+					fileupload(folderid, archivename, archivefile)
+					byebye()
+# Restore routine (to be done)
 	else:
-		pass
+		print "Restore has to be done yet."
+		a=PyZenity.Warning(text="Sorry!\nThe restore function hasn't been implemented yet.", title="BGS - Backup Save Games", window_icon=iconfile)
+		bgs()
 
 
-def callbackftp(p):
-	print "I am a callback function"
-
-
-#main program
-def bgs():
-  
-  global listoftemplates
-  a=PyZenity.InfoMessage('Welcome to BGS. This tool will backup your saved games from numerous emulators or native games, and save them in a single archive. That archive will then be saved on your SD Card and duplicated on your second SD card if you have any inserted, to fight the risk of data loss by redundancy.',timeout=15)
-  defineglobaldirectories()
-  
-  b=findpreviousbgs()
-  if b==True:
-  	c=PyZenity.List(["",""],title="What do you want to do ?",boolstyle="radiolist",data=[("1","I want to make a new backup"),("2","I want to restore a backup")])
-	print c
-	
-	
-  	
-  #make condition for c result after depending on choice
-  
-  for programtobackup in listoftemplates:
-    backupspecific(programtobackup[0],programtobackup[1],programtobackup[2],programtobackup[3])
-  
-  displayprogstobackup()
-  print directorytobackup
-  makearchivefile()
-  
-  a=PyZenity.InfoMessage('The application will now auto-close. Thanks for using it! Remember you should have these backups in case one of your card fails!',timeout=3)
-
-Yadcoco.dialog("yo salut",400,300,"ca va?")
 bgs()
+
